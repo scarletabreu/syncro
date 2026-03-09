@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Eventos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .navbar { background: white; border-bottom: 1px solid #e5e7eb; }
+        .card-evento { border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .badge-publicado { background-color: #dcfce7; color: #16a34a; }
+        .badge-cancelado { background-color: #fee2e2; color: #dc2626; }
+        .badge-borrador { background-color: #f1f5f9; color: #64748b; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">Sistema de Gestion de Eventos</a>
+        <div class="d-flex gap-2" id="navAcciones"></div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Eventos</h2>
+        <button id="btnCrear" class="btn btn-primary rounded-pill d-none">+ Crear Evento</button>
+    </div>
+
+    <div id="listaEventos" class="row g-4">
+        <p class="text-muted">Cargando eventos...</p>
+    </div>
+</div>
+
+<script>
+    // Carga sesión del usuario
+    fetch('/session')
+        .then(res => res.json())
+        .then(user => {
+            const nav = document.getElementById('navAcciones');
+            nav.innerHTML = `
+                <form action="/logout" method="post">
+                    <button class="btn btn-outline-danger btn-sm">Logout</button>
+                </form>`;
+
+            const puedeGestionar = user.rol === 'ADMIN' || user.rol === 'ORGANIZADOR';
+            if (puedeGestionar) {
+                document.getElementById('btnCrear').classList.remove('d-none');
+                document.getElementById('btnCrear').onclick = () => location.href = '/eventos/crear';
+
+                const btnEscanear = document.createElement('button');
+                btnEscanear.className = 'btn btn-outline-primary rounded-pill';
+                btnEscanear.textContent = 'Escanear QR';
+                btnEscanear.onclick = () => location.href = '/eventos/escanear';
+                document.querySelector('.d-flex.justify-content-between').appendChild(btnEscanear);
+            }
+        });
+
+    // Carga eventos
+    fetch('/eventos/lista')
+        .then(res => res.json())
+        .then(eventos => {
+            const lista = document.getElementById('listaEventos');
+            if (eventos.length === 0) {
+                lista.innerHTML = '<p class="text-muted">No hay eventos registrados.</p>';
+                return;
+            }
+
+            lista.innerHTML = '';
+            eventos.forEach(e => {
+                const estado = e.cancelado ? 'cancelado' : (e.publicado ? 'publicado' : 'borrador');
+                const etiqueta = e.cancelado ? 'Cancelado' : (e.publicado ? 'Publicado' : 'Borrador');
+
+                lista.innerHTML += `
+                    <div class="col-md-4">
+                        <div class="card card-evento p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="fw-bold mb-0">${e.titulo}</h5>
+                                <span class="badge badge-${estado} px-2 py-1 rounded-pill">${etiqueta}</span>
+                            </div>
+                            <p class="text-muted mb-1">${e.descripcion ?? ''}</p>
+                            <p class="mb-1"><strong>Lugar:</strong> ${e.lugar}</p>
+                            <p class="mb-1"><strong>Fecha:</strong> ${e.fechaHora}</p>
+                            <p class="mb-3"><strong>Cupo:</strong> ${e.cupoMaximo}</p>
+                            <div id="acciones-${e.id}"></div>
+                        </div>
+                    </div>`;
+
+                // Botones según rol
+                fetch('/session')
+                    .then(r => r.json())
+                    .then(user => {
+                        const puedeGestionar = user.rol === 'ADMIN' || user.rol === 'ORGANIZADOR';
+                        const acciones = document.getElementById(`acciones-${e.id}`);
+                        if (puedeGestionar && !e.cancelado) {
+                            acciones.innerHTML = `
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a href="/eventos/${e.id}/editar" class="btn btn-sm btn-outline-primary">Editar</a>
+                                    <form action="/eventos/${e.id}/cancelar" method="post">
+                                        <button class="btn btn-sm btn-outline-danger">Cancelar</button>
+                                    </form>
+                                    ${!e.publicado
+                                ? `<form action="/eventos/${e.id}/publicar" method="post">
+                                               <button class="btn btn-sm btn-success">Publicar</button>
+                                           </form>`
+                                : `<form action="/eventos/${e.id}/despublicar" method="post">
+                                               <button class="btn btn-sm btn-warning">Despublicar</button>
+                                           </form>`
+                            }
+                                </div>`;
+                        }
+
+                        if (user.rol === 'PARTICIPANTE' && e.publicado && !e.cancelado) {
+                            acciones.innerHTML = `
+                                <button onclick="inscribirse(${e.id})" class="btn btn-sm btn-success w-100">Inscribirse</button>
+                                <p id="error-${e.id}" class="text-danger mt-1" style="font-size:0.85rem"></p>`;
+                        }
+                    });
+            });
+        });
+    function inscribirse(eventoId) {
+        fetch(`/eventos/${eventoId}/inscribir`, { method: 'POST' })
+            .then(res => {
+                if (res.ok) {
+                    window.location.href = '/mis-eventos';
+                } else {
+                    return res.json().then(data => {
+                        document.getElementById(`error-${eventoId}`).textContent = data.error;
+                    });
+                }
+            });
+    }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.codewithmosh'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+application {
+    mainClass = "com.codewithmosh.App"
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    //dependencia de Javali
+
+    //manejo de log.
+    implementation("org.slf4j:slf4j-simple:2.0.10")
+
+    //libreria jsoup.
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.15.3'
+    //Plantilla thymeleaf
+    implementation("io.javalin:javalin:7.0.1")
+    implementation "io.javalin:javalin-rendering:7.0.1"
+    implementation 'org.thymeleaf:thymeleaf:3.1.2.RELEASE'
+
+    //Libreria ORM - Hibernate
+    implementation 'org.hibernate.orm:hibernate-core:6.0.2.Final'
+    //Libreria h2
+    implementation 'com.h2database:h2:2.4.240'
+    implementation 'jakarta.persistence:jakarta.persistence-api:3.1.0'
+    implementation 'org.slf4j:slf4j-simple:2.0.13'
+
+    implementation 'com.zaxxer:HikariCP:5.1.0'
+    implementation 'org.hibernate.orm:hibernate-hikaricp:6.4.0.Final'
+
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.20.1")
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1'
+
+    implementation 'org.jasypt:jasypt:1.9.3'
+
+    implementation 'org.postgresql:postgresql:42.7.3'
+
+    //lombok dependency
+    compileOnly("org.projectlombok:lombok:1.18.42")
+    annotationProcessor("org.projectlombok:lombok:1.18.42")
+
+    testCompileOnly("org.projectlombok:lombok:1.18.42")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.42")
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.named("run") {
+    standardInput = System.in
+}

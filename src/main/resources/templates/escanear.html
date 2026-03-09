@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Escanear QR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .navbar { background: white; border-bottom: 1px solid #e5e7eb; }
+        .card { border-radius: 20px; border: 1px solid #e5e7eb; box-shadow: 0 20px 40px rgba(0,0,0,0.06); }
+        #reader { width: 100%; border-radius: 12px; overflow: hidden; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">Sistema de Gestion de Eventos</a>
+        <div class="d-flex gap-2">
+            <a href="/eventos" class="btn btn-outline-secondary btn-sm">← Volver</a>
+            <form action="/logout" method="post">
+                <button class="btn btn-outline-danger btn-sm">Logout</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5 mb-5">
+    <div class="card p-4" style="max-width: 500px; margin: auto;">
+        <h2 class="fw-bold mb-1 text-center">Escanear QR</h2>
+        <p class="text-center text-muted mb-4">Apunta la cámara al código QR del participante</p>
+
+        <div id="reader" class="mb-4"></div>
+
+        <div id="resultado" class="d-none">
+            <div id="mensajeExito" class="alert alert-success d-none"></div>
+            <div id="mensajeError" class="alert alert-danger d-none"></div>
+            <button onclick="reiniciar()" class="btn btn-primary w-100 rounded-pill mt-2">
+                Escanear otro
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let scanner = new Html5QrcodeScanner("reader", {
+        fps: 10,
+        qrbox: 250
+    });
+
+    scanner.render(onScanSuccess, onScanError);
+
+    function onScanSuccess(decodedText) {
+        scanner.clear();
+
+        try {
+            const datos = JSON.parse(decodedText);
+
+            fetch('/eventos/validar-qr', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datos)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    const resultado = document.getElementById('resultado');
+                    const exito = document.getElementById('mensajeExito');
+                    const error = document.getElementById('mensajeError');
+
+                    resultado.classList.remove('d-none');
+
+                    if (data.mensaje) {
+                        exito.classList.remove('d-none');
+                        exito.textContent = data.mensaje;
+                    } else {
+                        error.classList.remove('d-none');
+                        error.textContent = data.error;
+                    }
+                });
+        } catch (e) {
+            document.getElementById('resultado').classList.remove('d-none');
+            document.getElementById('mensajeError').classList.remove('d-none');
+            document.getElementById('mensajeError').textContent = 'QR inválido';
+        }
+    }
+
+    function onScanError(error) {
+        // Silencioso, errores de cámara normales
+    }
+
+    function reiniciar() {
+        document.getElementById('resultado').classList.add('d-none');
+        document.getElementById('mensajeExito').classList.add('d-none');
+        document.getElementById('mensajeError').classList.add('d-none');
+
+        scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+        scanner.render(onScanSuccess, onScanError);
+    }
+</script>
+
+</body>
+</html>

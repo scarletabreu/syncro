@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Home</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    .navbar { background: white; border-bottom: 1px solid #e5e7eb; }
+    .stat-card { border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05); background: white; }
+    .nav-card { border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05); background: white; cursor: pointer; transition: all 0.2s; text-decoration: none; color: inherit; }
+    .nav-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.1); transform: translateY(-2px); }
+    .icon { font-size: 2rem; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="/">Sistema de Gestion de Eventos</a>
+    <div class="d-flex gap-2">
+      <span id="navUsuario" class="text-muted align-self-center" style="font-size:0.9rem"></span>
+      <form action="/logout" method="post">
+        <button class="btn btn-outline-danger btn-sm">Logout</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-5">
+
+  <!-- Bienvenida -->
+  <div class="mb-5">
+    <h2 class="fw-bold" id="bienvenida">Cargando...</h2>
+    <p class="text-muted" id="rolLabel"></p>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="row g-4 mb-5">
+    <div class="col-6 col-md-3">
+      <div class="stat-card p-4 text-center">
+        <div class="icon mb-2">📅</div>
+        <h3 class="fw-bold mb-0" id="totalEventos">-</h3>
+        <p class="text-muted mb-0">Total eventos</p>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card p-4 text-center">
+        <div class="icon mb-2">✅</div>
+        <h3 class="fw-bold mb-0" id="eventosPublicados">-</h3>
+        <p class="text-muted mb-0">Publicados</p>
+      </div>
+    </div>
+    <div class="col-6 col-md-3" id="statInscripciones" style="display:none">
+      <div class="stat-card p-4 text-center">
+        <div class="icon mb-2">🎟️</div>
+        <h3 class="fw-bold mb-0" id="misInscripciones">-</h3>
+        <p class="text-muted mb-0">Mis inscripciones</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Links de navegación según rol -->
+  <h4 class="fw-bold mb-3">Accesos rápidos</h4>
+  <div class="row g-4 mb-5" id="accesosRapidos"></div>
+
+  <!-- Resumen eventos disponibles -->
+  <h4 class="fw-bold mb-3">Próximos eventos</h4>
+  <div class="row g-4" id="proximosEventos">
+    <p class="text-muted">Cargando...</p>
+  </div>
+</div>
+
+<script>
+  let userSession = null;
+
+  // Carga sesión
+  fetch('/session')
+          .then(r => r.json())
+          .then(user => {
+            userSession = user;
+            const nombre = user.nombre ?? user.username;
+            document.getElementById('bienvenida').textContent = `Bienvenido, ${nombre} 👋`;
+            document.getElementById('navUsuario').textContent = user.username;
+
+            const roles = { ADMIN: 'Administrador', ORGANIZADOR: 'Organizador', PARTICIPANTE: 'Participante' };
+            document.getElementById('rolLabel').textContent = roles[user.rol] ?? user.rol;
+
+            // Accesos según rol
+            const accesos = document.getElementById('accesosRapidos');
+            const links = getLinks(user.rol);
+            links.forEach(link => {
+              accesos.innerHTML += `
+                    <div class="col-6 col-md-3">
+                        <a href="${link.url}" class="nav-card p-4 d-flex flex-column align-items-center text-center d-block">
+                            <div class="icon mb-2">${link.icono}</div>
+                            <p class="fw-600 mb-0">${link.label}</p>
+                        </a>
+                    </div>`;
+            });
+
+            // Stat inscripciones solo para participante
+            if (user.rol === 'PARTICIPANTE') {
+              document.getElementById('statInscripciones').style.display = 'block';
+              fetch('/mis-eventos/lista')
+                      .then(r => r.json())
+                      .then(ins => {
+                        document.getElementById('misInscripciones').textContent = ins.length;
+                      });
+            }
+          });
+
+  // Estadísticas
+  fetch('/home/stats')
+          .then(r => r.json())
+          .then(stats => {
+            document.getElementById('totalEventos').textContent = stats.totalEventos;
+            document.getElementById('eventosPublicados').textContent = stats.eventosPublicados;
+          });
+
+  // Próximos eventos
+  fetch('/eventos/lista')
+          .then(r => r.json())
+          .then(eventos => {
+            const contenedor = document.getElementById('proximosEventos');
+            const publicados = eventos.filter(e => e.publicado && !e.cancelado).slice(0, 3);
+
+            if (publicados.length === 0) {
+              contenedor.innerHTML = '<p class="text-muted">No hay eventos próximos.</p>';
+              return;
+            }
+
+            contenedor.innerHTML = '';
+            publicados.forEach(e => {
+              contenedor.innerHTML += `
+                    <div class="col-12 col-md-4">
+                        <div class="stat-card p-4">
+                            <h5 class="fw-bold">${e.titulo}</h5>
+                            <p class="text-muted mb-1">${e.descripcion ?? ''}</p>
+                            <p class="mb-1"><strong>Lugar:</strong> ${e.lugar}</p>
+                            <p class="mb-0"><strong>Fecha:</strong> ${new Date(e.fechaHora).toLocaleString()}</p>
+                        </div>
+                    </div>`;
+            });
+          });
+
+  function getLinks(rol) {
+    const base = [
+      { label: 'Ver Eventos', url: '/eventos', icono: '📅' }
+    ];
+    if (rol === 'ADMIN') {
+      return [
+        ...base,
+        { label: 'Usuarios', url: '/usuarios', icono: '👥' },
+        { label: 'Crear Evento', url: '/eventos/crear', icono: '➕' },
+        { label: 'Escanear QR', url: '/eventos/escanear', icono: '📷' }
+      ];
+    }
+    if (rol === 'ORGANIZADOR') {
+      return [
+        ...base,
+        { label: 'Crear Evento', url: '/eventos/crear', icono: '➕' },
+        { label: 'Escanear QR', url: '/eventos/escanear', icono: '📷' }
+      ];
+    }
+    return [
+      ...base,
+      { label: 'Mis Inscripciones', url: '/mis-eventos', icono: '🎟️' }
+    ];
+  }
+</script>
+</body>
+</html>

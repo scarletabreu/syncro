@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+
+    /* NAVBAR */
+    .navbar {
+      background-color: white;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .navbar-brand {
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    /* CARD */
+    .login-card {
+      background-color: white;
+      border-radius: 20px;
+      border: 1px solid #e5e7eb;
+      padding: 2.5rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+    }
+
+    .login-title {
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .login-subtitle {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin-bottom: 2rem;
+    }
+
+    /* INPUTS */
+    .form-control {
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      border: 1px solid #e5e7eb;
+    }
+
+    .form-control:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 0.15rem rgba(79,70,229,0.15);
+    }
+
+    /* BUTTON */
+    .btn-login {
+      background-color: #4f46e5;
+      border: none;
+      border-radius: 999px;
+      padding: 0.6rem;
+      font-weight: 600;
+    }
+
+    .btn-login:hover {
+      background-color: #4338ca;
+    }
+
+    /* CHECKBOX */
+    .form-check-input:checked {
+      background-color: #4f46e5;
+      border-color: #4f46e5;
+    }
+
+    /* CODE TAG */
+    .code-tag {
+      font-family: 'JetBrains Mono', monospace;
+      color: #4f46e5;
+    }
+
+    footer {
+      color: #64748b;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="/">Sistema de Gestion de Eventos</a>
+  </div>
+</nav>
+
+<!-- LOGIN -->
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="login-card" style="width: 420px;">
+
+    <h3 class="login-title text-center">
+      Iniciar sesión en <span class="code-tag">Sistema de Gestion de Eventos</span>
+    </h3>
+
+    <p class="login-subtitle text-center">
+      Accede a tu cuenta
+    </p>
+
+    <form action="/login" method="post">
+
+      <div class="mb-3">
+        <input name="username"
+               class="form-control"
+               placeholder="Username"
+               th:value="${username}"
+               required>
+      </div>
+
+      <div class="mb-3">
+        <input name="password"
+               type="password"
+               class="form-control"
+               placeholder="Password"
+               required>
+      </div>
+
+      <div class="form-check mb-4">
+        <input class="form-check-input" type="checkbox" name="recordar" id="recordar">
+        <label class="form-check-label small" for="recordar">
+          Recordar usuario
+        </label>
+      </div>
+
+      <button class="btn btn-login w-100">
+        Entrar
+      </button>
+    </form>
+  </div>
+</div>
+
+
+</body>
+</html>
