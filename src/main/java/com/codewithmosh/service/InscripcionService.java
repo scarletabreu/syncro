@@ -86,4 +86,15 @@ public class InscripcionService {
         inscripcionRepository.editar(inscripcion);
         return "Asistencia registrada correctamente";
     }
+
+    public int totalInscritos(Long eventoId) {
+        return inscripcionRepository.findByEvento(eventoId).size();
+    }
+
+    public int totalAsistentes(Long eventoId) {
+        return (int) inscripcionRepository.findByEvento(eventoId)
+                .stream()
+                .filter(i -> Boolean.TRUE.equals(i.getAsistio()))
+                .count();
+    }
 }

@@ -81,4 +81,17 @@ public class InscripcionRepository {
             em.close();
         }
     }
+
+    public List<Inscripcion> findByEvento(Long eventoId) {
+        EntityManager em = db.getEntityManager();
+        try {
+            return em.createQuery(
+                            "SELECT i FROM Inscripcion i WHERE i.evento.id = :eventoId AND i.activa = true",
+                            Inscripcion.class)
+                    .setParameter("eventoId", eventoId)
+                    .getResultList();
+        } finally {
+            em.close();
+        }
+    }
 }

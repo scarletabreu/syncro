@@ -36,12 +36,11 @@ public class App {
         GestionDataBase<Evento> dbEvento = new GestionDataBase<>(Evento.class);
         EventoRepository eventoRepository = new EventoRepository(dbEvento);
         EventoService eventoService = new EventoService(eventoRepository);
-        EventoController eventoController = new EventoController(eventoService);
-
         GestionDataBase<Inscripcion> dbInscripcion = new GestionDataBase<>(Inscripcion.class);
         InscripcionRepository inscripcionRepository = new InscripcionRepository(dbInscripcion);
         InscripcionService inscripcionService = new InscripcionService(inscripcionRepository, eventoRepository);
         InscripcionController inscripcionController = new InscripcionController(inscripcionService, eventoService);
+        EventoController eventoController = new EventoController(eventoService, inscripcionService);
 
         Javalin.create(config -> {
             ObjectMapper mapper = new ObjectMapper();

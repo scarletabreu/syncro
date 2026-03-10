@@ -4,6 +4,7 @@ import com.codewithmosh.enums.RolUser;
 import com.codewithmosh.model.Evento;
 import com.codewithmosh.model.Usuario;
 import com.codewithmosh.service.EventoService;
+import com.codewithmosh.service.InscripcionService;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -15,9 +16,11 @@ import static io.javalin.apibuilder.ApiBuilder.*;
 public class EventoController {
 
     private final EventoService eventoService;
+    private final InscripcionService inscripcionService;
 
-    public EventoController(EventoService eventoService) {
+    public EventoController(EventoService eventoService, InscripcionService inscripcionService) {
         this.eventoService = eventoService;
+        this.inscripcionService = inscripcionService;
     }
 
     private boolean puedeGestionar(Usuario user) {
@@ -76,6 +79,22 @@ public class EventoController {
             ctx.render("/templates/editar-evento.html");
         });
 
+        get("/eventos/{id}/stats", ctx -> {
+            Long id = Long.parseLong(ctx.pathParam("id"));
+
+            int inscritos = inscripcionService.totalInscritos(id);
+            int asistentes = inscripcionService.totalAsistentes(id);
+
+            double porcentaje = inscritos == 0 ? 0 : (asistentes * 100.0 / inscritos);
+
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("inscritos", inscritos);
+            stats.put("asistentes", asistentes);
+            stats.put("porcentaje", porcentaje);
+
+            ctx.json(stats);
+        });
+
         get("/eventos/escanear", ctx -> {
             Usuario user = ctx.sessionAttribute("user");
             if (!puedeGestionar(user)) {
@@ -83,6 +102,10 @@ public class EventoController {
                 return;
             }
             ctx.render("/templates/escanear.html");
+        });
+
+        get("/eventos/{id}/estadisticas", ctx -> {
+            ctx.render("/templates/evento-stats.html");
         });
 
         get("/home/stats", ctx -> {
