@@ -42,7 +42,7 @@ public class App {
         InscripcionController inscripcionController = new InscripcionController(inscripcionService, eventoService);
         EventoController eventoController = new EventoController(eventoService, inscripcionService);
 
-        Javalin.create(config -> {
+        Javalin app = Javalin.create(config -> {
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new JavaTimeModule());
             mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -57,11 +57,15 @@ public class App {
                     throw new RuntimeException(e);
                 }
             });
+
             config.routes.apiBuilder(() -> {
                 usuarioController.registrarRutas();
                 eventoController.registrarRutas();
                 inscripcionController.registrarRutas();
             });
-        }).start(7070);
+        });
+
+        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "7070"));
+        app.start(port);
     }
 }
