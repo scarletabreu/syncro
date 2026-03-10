@@ -14,16 +14,19 @@ application {
     mainClass = "com.codewithmosh.App"
 }
 
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'com.codewithmosh.App'
+        )
+    }
+}
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    //dependencia de Javali
-
-    //manejo de log.
-    implementation("org.slf4j:slf4j-simple:2.0.10")
-
+    //dependencia de Javalin
     //libreria jsoup.
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.15.3'
     //Plantilla thymeleaf

@@ -65,7 +65,10 @@ public class App {
             });
         });
 
-        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "7070"));
+        int port = Integer.parseInt(
+                System.getenv().getOrDefault("PORT", "7070")
+        );
+
         app.start(port);
     }
 }
