@@ -40,7 +40,14 @@ public class UsuarioController {
 
         usuarioService.generarAdmin();
 
-        get("/", ctx -> ctx.redirect("/login"));
+        get("/", ctx -> {
+            Usuario user = ctx.sessionAttribute("user");
+            if (user == null) {
+                ctx.redirect("/login");
+            } else {
+                ctx.redirect("/home");
+            }
+        });
 
         get("/login", ctx -> ctx.render("/templates/login.html"));
 
@@ -83,7 +90,7 @@ public class UsuarioController {
                 Map<String, Object> model = new HashMap<>();
                 model.put("error", "Usuario o contraseña incorrectos");
                 model.put("username", username);
-                ctx.status(401).render("/templates/login.html", model);
+                ctx.redirect("/login?error=true");
                 return;
             }
 
@@ -97,8 +104,17 @@ public class UsuarioController {
             user.setNombre(ctx.formParam("nombre"));
             user.setPassword(ctx.formParam("password"));
             user.setRol(RolUser.valueOf(ctx.formParam("rol")));
+
+            var foto = ctx.uploadedFile("fotoPerfil");
+            if (foto != null) {
+                byte[] bytes = foto.content().readAllBytes();
+                String base64 = "data:" + foto.contentType() + ";base64," +
+                        java.util.Base64.getEncoder().encodeToString(bytes);
+                user.setFotoPerfil(base64);
+            }
+
             usuarioService.crearUsuario(user);
-            ctx.redirect("/login");
+            ctx.redirect("/usuarios");
         });
 
         post("/registro", ctx -> {

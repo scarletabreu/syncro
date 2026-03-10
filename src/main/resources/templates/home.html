@@ -1,173 +1,632 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Home</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Syncro — Sistema de Gestión de Eventos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-    .navbar { background: white; border-bottom: 1px solid #e5e7eb; }
-    .stat-card { border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05); background: white; }
-    .nav-card { border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05); background: white; cursor: pointer; transition: all 0.2s; text-decoration: none; color: inherit; }
-    .nav-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.1); transform: translateY(-2px); }
-    .icon { font-size: 2rem; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #f4f3ff;
+      --surface:  #ffffff;
+      --surface2: #f9f8ff;
+      --border:   rgba(108,99,255,0.12);
+      --border2:  rgba(108,99,255,0.22);
+      --accent:   #6c63ff;
+      --accent2:  #ff6b9d;
+      --accent3:  #00b894;
+      --text:     #14131f;
+      --muted:    #9896b0;
+      --muted2:   #6b6985;
+      --shadow:   0 2px 16px rgba(108,99,255,0.08);
+      --shadow-lg:0 8px 40px rgba(108,99,255,0.14);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Soft ambient blobs */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -15%;
+      left: -8%;
+      width: 650px;
+      height: 650px;
+      background: radial-gradient(circle, rgba(108,99,255,0.1) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -15%;
+      right: -8%;
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, rgba(0,184,148,0.09) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAVBAR ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2.5rem;
+      height: 64px;
+      background: rgba(244,243,255,0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .nav-logo-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(108,99,255,0.18);
+      animation: breathe 2.2s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(108,99,255,0.18); }
+      50%       { box-shadow: 0 0 0 6px rgba(108,99,255,0.08); }
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+
+    #navUsuario {
+      font-size: 0.83rem;
+      color: var(--muted2);
+      font-weight: 500;
+    }
+
+    .nav-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border2);
+      background: rgba(108,99,255,0.08);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; flex-shrink: 0;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 0.8rem;
+      color: var(--accent);
+    }
+    .nav-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .btn-logout {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 0.42rem 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(239,68,68,0.25);
+      background: rgba(239,68,68,0.06);
+      color: #dc2626;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .btn-logout:hover {
+      background: rgba(239,68,68,0.12);
+      border-color: rgba(239,68,68,0.4);
+    }
+
+    /* ── MAIN ── */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 3.5rem 2.5rem 6rem;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      margin-bottom: 3rem;
+      animation: fadeUp 0.55s ease both;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.9rem;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      display: block;
+      width: 18px;
+      height: 1.5px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(2rem, 4.5vw, 3rem);
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      color: var(--text);
+      margin-bottom: 0.55rem;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(130deg, var(--accent) 20%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 0.95rem;
+      color: var(--muted2);
+    }
+
+    /* ── STATS ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+      gap: 1rem;
+      margin-bottom: 3rem;
+      animation: fadeUp 0.55s 0.08s ease both;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.5rem 1.4rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
+    }
+    .stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--border2);
+    }
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(108,99,255,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .stat-icon { font-size: 1.5rem; margin-bottom: 0.8rem; display: block; }
+
+    .stat-number {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 2.1rem;
+      line-height: 1;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+      letter-spacing: -1px;
+    }
+
+    .stat-label {
+      font-size: 0.74rem;
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ── SECTION HEADER ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.1rem;
+    }
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border2), transparent);
+    }
+
+    /* ── QUICK ACCESS ── */
+    .accesos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 1rem;
+      margin-bottom: 3rem;
+      animation: fadeUp 0.55s 0.16s ease both;
+    }
+
+    .nav-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.5rem 1.25rem 1.35rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.7rem;
+      text-decoration: none;
+      color: var(--text);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s cubic-bezier(0.34, 1.4, 0.64, 1);
+    }
+
+    .nav-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(108,99,255,0.05) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .nav-card-arrow {
+      position: absolute;
+      top: 1.2rem;
+      right: 1.2rem;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(108,99,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: var(--accent);
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .nav-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--border2);
+    }
+    .nav-card:hover::before { opacity: 1; }
+    .nav-card:hover .nav-card-arrow {
+      transform: translate(2px, -2px);
+      background: rgba(108,99,255,0.15);
+    }
+
+    .nav-card-icon { font-size: 1.7rem; line-height: 1; }
+    .nav-card-label {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.88rem;
+      line-height: 1.3;
+      color: var(--text);
+    }
+
+    /* ── EVENT CARDS ── */
+    .eventos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(285px, 1fr));
+      gap: 1.25rem;
+      animation: fadeUp 0.55s 0.24s ease both;
+    }
+
+    .evento-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
+    }
+    .evento-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(0,184,148,0.25);
+    }
+    .evento-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent3), var(--accent));
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .evento-card:hover::before { opacity: 1; }
+
+    .evento-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent3);
+      background: rgba(0,184,148,0.08);
+      border: 1px solid rgba(0,184,148,0.2);
+      border-radius: 6px;
+      padding: 0.25rem 0.65rem;
+      margin-bottom: 0.9rem;
+    }
+    .evento-badge::before {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent3);
+      animation: breathe 2s ease-in-out infinite;
+    }
+
+    .evento-titulo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-bottom: 0.4rem;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+    .evento-desc {
+      font-size: 0.85rem;
+      color: var(--muted2);
+      margin-bottom: 1rem;
+      line-height: 1.55;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .evento-divider {
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 1rem;
+    }
+    .evento-meta { display: flex; flex-direction: column; gap: 0.35rem; }
+    .evento-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--muted2);
+    }
+    .evento-meta-item svg { flex-shrink: 0; color: var(--muted); }
+
+    /* ── ROL PILL ── */
+    .rol-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      border: 1px solid;
+    }
+    .rol-pill.admin  { color: #be185d; border-color: rgba(190,24,93,0.2);  background: rgba(190,24,93,0.07);  }
+    .rol-pill.org    { color: #b45309; border-color: rgba(180,83,9,0.2);   background: rgba(180,83,9,0.07);   }
+    .rol-pill.part   { color: #047857; border-color: rgba(4,120,87,0.2);   background: rgba(4,120,87,0.07);   }
+
+    /* ── EMPTY ── */
+    .empty {
+      padding: 3rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      background: var(--surface);
+      border: 1.5px dashed var(--border2);
+      border-radius: 18px;
+      grid-column: 1/-1;
+    }
+
+    /* ── ANIM ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 640px) {
+      nav { padding: 0 1.25rem; }
+      main { padding: 2rem 1.25rem 4rem; }
+      .hero h1 { font-size: 1.85rem; letter-spacing: -1px; }
+    }
   </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg sticky-top">
-  <div class="container">
-    <a class="navbar-brand fw-bold" href="/">Sistema de Gestion de Eventos</a>
-    <div class="d-flex gap-2">
-      <span id="navUsuario" class="text-muted align-self-center" style="font-size:0.9rem"></span>
-      <form action="/logout" method="post">
-        <button class="btn btn-outline-danger btn-sm">Logout</button>
-      </form>
-    </div>
+<nav>
+  <a class="nav-logo" href="/">
+    <span class="nav-logo-dot"></span>
+    syncro
+  </a>
+  <div class="nav-right">
+    <span id="navUsuario"></span>
+    <div class="nav-avatar" id="navAvatar"></div>
+    <form action="/logout" method="post" style="margin:0">
+      <button class="btn-logout" type="submit">Cerrar sesión</button>
+    </form>
   </div>
 </nav>
 
-<div class="container mt-5">
+<main>
 
-  <!-- Bienvenida -->
-  <div class="mb-5">
-    <h2 class="fw-bold" id="bienvenida">Cargando...</h2>
-    <p class="text-muted" id="rolLabel"></p>
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow" id="rolPill">Dashboard</div>
+    <h1 id="bienvenida">Cargando<span>...</span></h1>
+    <p class="hero-sub" id="rolLabel"></p>
   </div>
 
-  <!-- Estadísticas -->
-  <div class="row g-4 mb-5">
-    <div class="col-6 col-md-3">
-      <div class="stat-card p-4 text-center">
-        <div class="icon mb-2">📅</div>
-        <h3 class="fw-bold mb-0" id="totalEventos">-</h3>
-        <p class="text-muted mb-0">Total eventos</p>
-      </div>
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-icon">📅</span>
+      <div class="stat-number" id="totalEventos">—</div>
+      <div class="stat-label">Total eventos</div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="stat-card p-4 text-center">
-        <div class="icon mb-2">✅</div>
-        <h3 class="fw-bold mb-0" id="eventosPublicados">-</h3>
-        <p class="text-muted mb-0">Publicados</p>
-      </div>
+    <div class="stat-card">
+      <span class="stat-icon">✅</span>
+      <div class="stat-number" id="eventosPublicados">—</div>
+      <div class="stat-label">Publicados</div>
     </div>
-    <div class="col-6 col-md-3" id="statInscripciones" style="display:none">
-      <div class="stat-card p-4 text-center">
-        <div class="icon mb-2">🎟️</div>
-        <h3 class="fw-bold mb-0" id="misInscripciones">-</h3>
-        <p class="text-muted mb-0">Mis inscripciones</p>
-      </div>
+    <div class="stat-card" id="statInscripciones" style="display:none">
+      <span class="stat-icon">🎟️</span>
+      <div class="stat-number" id="misInscripciones">—</div>
+      <div class="stat-label">Mis inscripciones</div>
     </div>
   </div>
 
-  <!-- Links de navegación según rol -->
-  <h4 class="fw-bold mb-3">Accesos rápidos</h4>
-  <div class="row g-4 mb-5" id="accesosRapidos"></div>
-
-  <!-- Resumen eventos disponibles -->
-  <h4 class="fw-bold mb-3">Próximos eventos</h4>
-  <div class="row g-4" id="proximosEventos">
-    <p class="text-muted">Cargando...</p>
+  <!-- ACCESOS RÁPIDOS -->
+  <div class="section-header">
+    <span class="section-title">Accesos rápidos</span>
+    <div class="section-line"></div>
   </div>
-</div>
+  <div class="accesos-grid" id="accesosRapidos"></div>
+
+  <!-- PRÓXIMOS EVENTOS -->
+  <div class="section-header">
+    <span class="section-title">Próximos eventos</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="eventos-grid" id="proximosEventos">
+    <p style="color:var(--muted);font-size:0.9rem">Cargando eventos...</p>
+  </div>
+
+</main>
 
 <script>
-  let userSession = null;
-
-  // Carga sesión
   fetch('/session')
           .then(r => r.json())
           .then(user => {
-            userSession = user;
             const nombre = user.nombre ?? user.username;
-            document.getElementById('bienvenida').textContent = `Bienvenido, ${nombre} 👋`;
-            document.getElementById('navUsuario').textContent = user.username;
+            document.getElementById('bienvenida').innerHTML = `Hola, <span>${nombre}</span> 👋`;
+            document.getElementById('navUsuario').textContent = '@' + user.username;
 
-            const roles = { ADMIN: 'Administrador', ORGANIZADOR: 'Organizador', PARTICIPANTE: 'Participante' };
-            document.getElementById('rolLabel').textContent = roles[user.rol] ?? user.rol;
+            // Avatar navbar
+            const navAvatar = document.getElementById('navAvatar');
+            if (user.fotoPerfil) {
+              navAvatar.innerHTML = `<img src="${user.fotoPerfil}" alt="${nombre}">`;
+            } else {
+              navAvatar.textContent = nombre.charAt(0).toUpperCase();
+            }
 
-            // Accesos según rol
+            const rolMap   = { ADMIN: 'Administrador', ORGANIZADOR: 'Organizador', PARTICIPANTE: 'Participante' };
+            const rolClass = { ADMIN: 'admin', ORGANIZADOR: 'org', PARTICIPANTE: 'part' };
+            document.getElementById('rolLabel').textContent = 'Estás como ' + (rolMap[user.rol] ?? user.rol);
+            document.getElementById('rolPill').innerHTML =
+                    `<span class="rol-pill ${rolClass[user.rol] ?? ''}">${rolMap[user.rol] ?? user.rol}</span>`;
+
             const accesos = document.getElementById('accesosRapidos');
-            const links = getLinks(user.rol);
-            links.forEach(link => {
+            getLinks(user.rol).forEach(link => {
               accesos.innerHTML += `
-                    <div class="col-6 col-md-3">
-                        <a href="${link.url}" class="nav-card p-4 d-flex flex-column align-items-center text-center d-block">
-                            <div class="icon mb-2">${link.icono}</div>
-                            <p class="fw-600 mb-0">${link.label}</p>
-                        </a>
-                    </div>`;
+          <a href="${link.url}" class="nav-card">
+            <div class="nav-card-arrow">→</div>
+            <div class="nav-card-icon">${link.icono}</div>
+            <div class="nav-card-label">${link.label}</div>
+          </a>`;
             });
 
-            // Stat inscripciones solo para participante
             if (user.rol === 'PARTICIPANTE') {
               document.getElementById('statInscripciones').style.display = 'block';
               fetch('/mis-eventos/lista')
                       .then(r => r.json())
-                      .then(ins => {
-                        document.getElementById('misInscripciones').textContent = ins.length;
-                      });
+                      .then(ins => { document.getElementById('misInscripciones').textContent = ins.length; });
             }
           });
 
-  // Estadísticas
   fetch('/home/stats')
           .then(r => r.json())
           .then(stats => {
-            document.getElementById('totalEventos').textContent = stats.totalEventos;
+            document.getElementById('totalEventos').textContent  = stats.totalEventos;
             document.getElementById('eventosPublicados').textContent = stats.eventosPublicados;
           });
 
-  // Próximos eventos
   fetch('/eventos/lista')
           .then(r => r.json())
           .then(eventos => {
-            const contenedor = document.getElementById('proximosEventos');
+            const el = document.getElementById('proximosEventos');
             const publicados = eventos.filter(e => e.publicado && !e.cancelado).slice(0, 3);
 
-            if (publicados.length === 0) {
-              contenedor.innerHTML = '<p class="text-muted">No hay eventos próximos.</p>';
+            if (!publicados.length) {
+              el.innerHTML = '<div class="empty">No hay eventos próximos disponibles.</div>';
               return;
             }
 
-            contenedor.innerHTML = '';
-            publicados.forEach(e => {
-              contenedor.innerHTML += `
-                    <div class="col-12 col-md-4">
-                        <div class="stat-card p-4">
-                            <h5 class="fw-bold">${e.titulo}</h5>
-                            <p class="text-muted mb-1">${e.descripcion ?? ''}</p>
-                            <p class="mb-1"><strong>Lugar:</strong> ${e.lugar}</p>
-                            <p class="mb-0"><strong>Fecha:</strong> ${new Date(e.fechaHora).toLocaleString()}</p>
-                        </div>
-                    </div>`;
-            });
+            el.innerHTML = publicados.map(e => `
+        <div class="evento-card">
+          <div class="evento-badge">Próximo</div>
+          <div class="evento-titulo">${e.titulo}</div>
+          ${e.descripcion ? `<div class="evento-desc">${e.descripcion}</div>` : ''}
+          <div class="evento-divider"></div>
+          <div class="evento-meta">
+            <div class="evento-meta-item">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              ${e.lugar}
+            </div>
+            <div class="evento-meta-item">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              ${new Date(e.fechaHora).toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' })}
+            </div>
+          </div>
+        </div>`).join('');
           });
 
   function getLinks(rol) {
-    const base = [
-      { label: 'Ver Eventos', url: '/eventos', icono: '📅' }
-    ];
-    if (rol === 'ADMIN') {
-      return [
-        ...base,
-        { label: 'Usuarios', url: '/usuarios', icono: '👥' },
-        { label: 'Crear Evento', url: '/eventos/crear', icono: '➕' },
-        { label: 'Escanear QR', url: '/eventos/escanear', icono: '📷' }
-      ];
-    }
-    if (rol === 'ORGANIZADOR') {
-      return [
-        ...base,
-        { label: 'Crear Evento', url: '/eventos/crear', icono: '➕' },
-        { label: 'Escanear QR', url: '/eventos/escanear', icono: '📷' }
-      ];
-    }
-    return [
-      ...base,
-      { label: 'Mis Inscripciones', url: '/mis-eventos', icono: '🎟️' }
-    ];
+    const base = [{ label: 'Ver Eventos', url: '/eventos', icono: '📅' }];
+    if (rol === 'ADMIN') return [...base,
+      { label: 'Usuarios',      url: '/usuarios',       icono: '👥' },
+      { label: 'Crear Evento',  url: '/eventos/crear',  icono: '➕' },
+      { label: 'Escanear QR',  url: '/eventos/escanear',icono: '📷' }];
+    if (rol === 'ORGANIZADOR') return [...base,
+      { label: 'Crear Evento', url: '/eventos/crear',   icono: '➕' },
+      { label: 'Escanear QR', url: '/eventos/escanear', icono: '📷' }];
+    return [...base,
+      { label: 'Mis Inscripciones', url: '/mis-eventos', icono: '🎟️' }];
   }
 </script>
 </body>

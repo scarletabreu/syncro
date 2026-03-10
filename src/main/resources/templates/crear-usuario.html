@@ -1,131 +1,511 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Crear Usuario</title>
-
-  <!-- Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Syncro — Crear Usuario</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #f4f3ff;
+      --surface:   #ffffff;
+      --border:    rgba(108,99,255,0.12);
+      --border2:   rgba(108,99,255,0.28);
+      --accent:    #6c63ff;
+      --accent2:   #ff6b9d;
+      --text:      #14131f;
+      --muted:     #9896b0;
+      --muted2:    #6b6985;
+      --shadow:    0 2px 16px rgba(108,99,255,0.08);
+      --shadow-lg: 0 20px 60px rgba(108,99,255,0.14);
+    }
+
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f8fafc;
-      color: #0f172a;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
     }
 
-    /* NAVBAR */
-    .navbar {
-      background-color: white;
-      border-bottom: 1px solid #e5e7eb;
+    body::before {
+      content: '';
+      position: fixed;
+      top: -15%; left: -8%;
+      width: 650px; height: 650px;
+      background: radial-gradient(circle, rgba(108,99,255,0.1) 0%, transparent 65%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -15%; right: -8%;
+      width: 550px; height: 550px;
+      background: radial-gradient(circle, rgba(255,107,157,0.08) 0%, transparent 65%);
+      pointer-events: none; z-index: 0;
     }
 
-    .navbar-brand {
-      font-weight: 700;
+    /* ── NAVBAR ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2.5rem;
+      height: 64px;
+      background: rgba(244,243,255,0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.35rem;
       letter-spacing: -0.5px;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
     }
 
-    /* CARD */
-    .card {
-      border-radius: 20px;
-      border: 1px solid #e5e7eb;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+    .nav-logo-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(108,99,255,0.18);
+      animation: breathe 2.2s ease-in-out infinite;
     }
 
-    /* FORM */
-    .form-control, .form-select {
+    @keyframes breathe {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(108,99,255,0.18); }
+      50%       { box-shadow: 0 0 0 6px rgba(108,99,255,0.07); }
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+
+    .btn-nav-login {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 0.42rem 1rem;
+      border-radius: 8px;
+      border: 1.5px solid var(--border2);
+      background: transparent;
+      color: var(--accent);
+      text-decoration: none;
+      transition: all 0.18s;
+    }
+    .btn-nav-login:hover {
+      background: rgba(108,99,255,0.07);
+    }
+
+    .btn-logout {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 0.42rem 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(239,68,68,0.25);
+      background: rgba(239,68,68,0.06);
+      color: #dc2626;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .btn-logout:hover {
+      background: rgba(239,68,68,0.12);
+      border-color: rgba(239,68,68,0.4);
+    }
+
+    /* ── PAGE ── */
+    .page-center {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── CARD ── */
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.75rem 2.5rem;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: var(--shadow-lg);
+      animation: fadeUp 0.55s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── CARD HEADER ── */
+    .card-header-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .card-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(108,99,255,0.12) 0%, rgba(108,99,255,0.05) 100%);
+      border: 1px solid var(--border2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      text-align: center;
+    }
+
+    .card-subtitle {
+      font-size: 0.87rem;
+      color: var(--muted2);
+      text-align: center;
+    }
+
+    .card-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border2), transparent);
+      margin-bottom: 1.75rem;
+    }
+
+    /* ── FIELDS ── */
+    .field {
+      margin-bottom: 1.1rem;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.76rem;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      margin-bottom: 0.45rem;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: var(--bg);
+      border: 1.5px solid var(--border);
       border-radius: 12px;
       padding: 0.75rem 1rem;
-      border: 1px solid #e5e7eb;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
     }
 
-    .form-control:focus, .form-select:focus {
-      border-color: #4f46e5;
-      box-shadow: 0 0 0 0.15rem rgba(79,70,229,0.15);
+    .field input::placeholder { color: var(--muted); }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--accent);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(108,99,255,0.1);
     }
 
-    .btn-create {
-      background-color: #4f46e5;
-      border: none;
-      border-radius: 999px;
-      padding: 0.6rem 1.2rem;
+    /* Custom select arrow */
+    .select-wrap {
+      position: relative;
+    }
+    .select-wrap::after {
+      content: '';
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0; height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid var(--muted);
+      pointer-events: none;
+    }
+    .select-wrap select { padding-right: 2.5rem; cursor: pointer; }
+
+    /* Role options visual hint */
+    .role-hint {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .role-tag {
+      font-size: 0.68rem;
       font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid;
+    }
+    .role-tag.part  { color: #047857; border-color: rgba(4,120,87,0.2);  background: rgba(4,120,87,0.07); }
+    .role-tag.org   { color: #b45309; border-color: rgba(180,83,9,0.2);  background: rgba(180,83,9,0.07); }
+    .role-tag.admin { color: #be185d; border-color: rgba(190,24,93,0.2); background: rgba(190,24,93,0.07); }
+
+    /* ── BUTTON ── */
+    .btn-submit {
+      width: 100%;
+      margin-top: 0.5rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: white;
+      background: linear-gradient(135deg, var(--accent) 0%, #857dff 100%);
+      border: none;
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      cursor: pointer;
+      transition: all 0.22s cubic-bezier(0.34, 1.4, 0.64, 1);
+      box-shadow: 0 4px 20px rgba(108,99,255,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-submit::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(108,99,255,0.4);
+    }
+    .btn-submit:hover::before { opacity: 1; }
+    .btn-submit:active { transform: translateY(0); }
+
+    /* ── AVATAR UPLOAD ── */
+    .avatar-upload {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.9rem 1rem;
+      background: var(--bg);
+      border: 1.5px dashed var(--border2);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .avatar-upload:hover {
+      border-color: var(--accent);
+      background: rgba(108,99,255,0.04);
+    }
+    .avatar-preview {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: rgba(108,99,255,0.08);
+      border: 1.5px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; flex-shrink: 0;
+      transition: border-color 0.18s;
+    }
+    .avatar-preview img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+    .avatar-info {
+      display: flex; flex-direction: column; gap: 0.2rem; flex: 1;
+    }
+    .avatar-cta {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem; font-weight: 700;
+      color: var(--text);
+    }
+    .avatar-hint {
+      font-size: 0.75rem; color: var(--muted);
+    }
+    .avatar-btn {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-size: 0.78rem; font-weight: 600;
+      color: var(--accent);
+      background: rgba(108,99,255,0.08);
+      border: 1.5px solid var(--border2);
+      border-radius: 8px; padding: 0.35rem 0.75rem;
+      white-space: nowrap; transition: all 0.15s;
+    }
+    .avatar-upload:hover .avatar-btn {
+      background: rgba(108,99,255,0.14);
+      border-color: var(--accent);
     }
 
-    .btn-create:hover {
-      background-color: #4338ca;
+    /* ── BACK LINK ── */
+    .back-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      margin-top: 1.25rem;
+      font-size: 0.84rem;
+      color: var(--muted2);
+      text-decoration: none;
+      transition: color 0.15s;
     }
+    .back-link:hover { color: var(--accent); }
 
-    label {
-      font-weight: 500;
-    }
-
-    footer {
-      color: #64748b;
+    @media (max-width: 480px) {
+      .form-card { padding: 2rem 1.5rem; border-radius: 20px; }
+      nav { padding: 0 1.25rem; }
     }
   </style>
 </head>
-
 <body>
 
 <!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg sticky-top">
-  <div class="container">
-    <a class="navbar-brand" href="/">Sistema de Gestion de Eventos</a>
-
-    <div class="d-flex align-items-center gap-3">
-
-      <a th:if="${user == null}" href="/login" class="btn btn-outline-primary btn-sm">
-        Login
-      </a>
-
-      <form th:if="${user != null}" action="/logout" method="post">
-        <button class="btn btn-outline-danger btn-sm">Logout</button>
-      </form>
-    </div>
+<nav>
+  <a class="nav-logo" href="/">
+    <span class="nav-logo-dot"></span>
+    syncro
+  </a>
+  <div class="nav-right">
+    <a th:if="${user == null}" href="/login" class="btn-nav-login">Login</a>
+    <form th:if="${user != null}" action="/logout" method="post" style="margin:0">
+      <button class="btn-logout" type="submit">Cerrar sesión</button>
+    </form>
   </div>
 </nav>
 
 <!-- FORM -->
-<div class="container mt-5 mb-5">
-  <div class="card shadow p-4" style="max-width: 600px; margin: auto;">
-    <h2 class="fw-bold mb-4 text-center">
-      Crear Usuario <span style="font-family:'JetBrains Mono', monospace;"></span>
-    </h2>
+<div class="page-center">
+  <div class="form-card">
+
+    <!-- Header -->
+    <div class="card-header-area">
+      <div class="card-icon">👤</div>
+      <div class="card-title">Crear usuario</div>
+      <div class="card-subtitle">Completa los datos para registrar un nuevo usuario</div>
+    </div>
+
+    <div class="card-divider"></div>
 
     <form action="/usuarios" method="post" enctype="multipart/form-data">
 
-      <div class="mb-3">
-        <label class="form-label">Username</label>
-        <input name="username" class="form-control" placeholder="Username" required>
+      <!-- FOTO DE PERFIL -->
+      <div class="field" style="margin-bottom:1.5rem">
+        <label>Foto de perfil <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(opcional)</span></label>
+        <div class="avatar-upload" onclick="document.getElementById('fotoPerfil').click()">
+          <div class="avatar-preview" id="avatarPreview">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--muted)">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <div class="avatar-info">
+            <span class="avatar-cta">Subir foto de perfil</span>
+            <span class="avatar-hint">JPG, PNG, WEBP · máx. 2MB</span>
+          </div>
+          <div class="avatar-btn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Elegir
+          </div>
+        </div>
+        <input id="fotoPerfil" name="fotoPerfil" type="file"
+               accept="image/*" style="display:none"
+               onchange="previewAvatar(this)">
       </div>
 
-      <div class="mb-3">
-        <label class="form-label">Nombre completo</label>
-        <input name="nombre" class="form-control" placeholder="Nombre completo" required>
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text"
+               placeholder="ej. juan_perez" autocomplete="off" required>
       </div>
 
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input name="password" type="password" class="form-control" placeholder="Password" required>
+      <div class="field">
+        <label for="nombre">Nombre completo</label>
+        <input id="nombre" name="nombre" type="text"
+               placeholder="ej. Juan Pérez" required>
       </div>
 
-      <div class="mb-3">
-        <label class="form-label">Asignar Rol</label>
-        <select name="rol" class="form-select" required>
-          <option value="PARTICIPANTE">Participante</option>
-          <option value="ORGANIZADOR">Organizador</option>
-          <option value="ADMIN">Administrador</option>
-        </select>
+      <div class="field">
+        <label for="password">Contraseña</label>
+        <input id="password" name="password" type="password"
+               placeholder="••••••••" required>
       </div>
 
-      <button type="submit" class="btn btn-create w-100">Crear usuario</button>
+      <div class="field">
+        <label for="rol">Rol</label>
+        <div class="select-wrap">
+          <select id="rol" name="rol" required>
+            <option value="PARTICIPANTE">Participante</option>
+            <option value="ORGANIZADOR">Organizador</option>
+            <option value="ADMIN">Administrador</option>
+          </select>
+        </div>
+        <div class="role-hint">
+          <span class="role-tag part">Participante</span>
+          <span class="role-tag org">Organizador</span>
+          <span class="role-tag admin">Admin</span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit">Crear usuario →</button>
+
     </form>
+
+    <a href="/usuarios" class="back-link">
+      ← Volver a usuarios
+    </a>
+
   </div>
 </div>
 
+<script>
+  function previewAvatar(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    if (file.size > 2 * 1024 * 1024) {
+      alert('La imagen no debe superar 2MB.');
+      input.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const preview = document.getElementById('avatarPreview');
+      preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+      preview.style.border = '2px solid var(--accent)';
+      document.querySelector('.avatar-cta').textContent = file.name.length > 20
+              ? file.name.substring(0, 20) + '…'
+              : file.name;
+      document.querySelector('.avatar-hint').textContent = (file.size / 1024).toFixed(0) + ' KB · Listo ✓';
+      document.querySelector('.avatar-btn').textContent = 'Cambiar';
+    };
+    reader.readAsDataURL(file);
+  }
+</script>
 </body>
 </html>

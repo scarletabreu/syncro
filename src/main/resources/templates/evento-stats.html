@@ -1,202 +1,503 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Estadísticas del Evento</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syncro — Estadísticas del Evento</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body{
-            font-family:'Inter',sans-serif;
-            background:#f8fafc;
+        :root {
+            --bg:        #f4f3ff;
+            --surface:   #ffffff;
+            --border:    rgba(108,99,255,0.12);
+            --border2:   rgba(108,99,255,0.25);
+            --accent:    #6c63ff;
+            --accent3:   #00b894;
+            --text:      #14131f;
+            --muted:     #9896b0;
+            --muted2:    #6b6985;
+            --shadow:    0 2px 16px rgba(108,99,255,0.08);
+            --shadow-lg: 0 8px 40px rgba(108,99,255,0.13);
+            --green:     #10b981;
+            --red:       #ef4444;
+            --blue:      #6c63ff;
         }
 
-        .navbar{
-            background:white;
-            border-bottom:1px solid #e5e7eb;
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .stat-card{
-            border-radius:16px;
-            border:1px solid #e5e7eb;
-            box-shadow:0 4px 12px rgba(0,0,0,0.05);
-            background:white;
+        body::before {
+            content: '';
+            position: fixed; top: -15%; left: -8%;
+            width: 650px; height: 650px;
+            background: radial-gradient(circle, rgba(108,99,255,0.09) 0%, transparent 65%);
+            pointer-events: none; z-index: 0;
+        }
+        body::after {
+            content: '';
+            position: fixed; bottom: -15%; right: -8%;
+            width: 550px; height: 550px;
+            background: radial-gradient(circle, rgba(0,184,148,0.08) 0%, transparent 65%);
+            pointer-events: none; z-index: 0;
         }
 
-        .chart-box{
-            height:220px;
+        /* ── NAVBAR ── */
+        nav {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 2.5rem; height: 64px;
+            background: rgba(244,243,255,0.82);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
         }
 
+        .nav-logo {
+            font-family: 'Syne', sans-serif; font-weight: 800;
+            font-size: 1.35rem; letter-spacing: -0.5px;
+            color: var(--text); text-decoration: none;
+            display: flex; align-items: center; gap: 0.55rem;
+        }
+        .nav-logo-dot {
+            width: 9px; height: 9px; border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 0 3px rgba(108,99,255,0.18);
+            animation: breathe 2.2s ease-in-out infinite;
+        }
+        @keyframes breathe {
+            0%,100% { box-shadow: 0 0 0 3px rgba(108,99,255,0.18); }
+            50%      { box-shadow: 0 0 0 6px rgba(108,99,255,0.07); }
+        }
+
+        .btn-back {
+            font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500;
+            padding: 0.42rem 1rem; border-radius: 8px;
+            border: 1.5px solid var(--border2); background: transparent;
+            color: var(--muted2); cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            transition: all 0.18s;
+        }
+        .btn-back:hover { color: var(--accent); border-color: var(--accent); background: rgba(108,99,255,0.06); }
+
+        /* ── MAIN ── */
+        main {
+            position: relative; z-index: 1;
+            max-width: 1100px; margin: 0 auto;
+            padding: 3rem 2.5rem 5rem;
+        }
+
+        /* ── PAGE HEADER ── */
+        .page-header {
+            margin-bottom: 2.5rem;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        .page-eyebrow {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em;
+            text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem;
+        }
+        .page-eyebrow::before {
+            content: ''; display: block; width: 18px; height: 1.5px;
+            background: var(--accent); border-radius: 2px;
+        }
+
+        .page-title {
+            font-family: 'Syne', sans-serif; font-weight: 800;
+            font-size: 2rem; letter-spacing: -1px; color: var(--text);
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── STAT CARDS ROW ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            animation: fadeUp 0.5s 0.07s ease both;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem 1.5rem 1.4rem;
+            box-shadow: var(--shadow);
+            position: relative; overflow: hidden;
+            transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--border2);
+        }
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            border-radius: 20px 20px 0 0;
+        }
+        .stat-card.c-inscritos::before  { background: linear-gradient(90deg, var(--accent), #857dff); }
+        .stat-card.c-asistentes::before { background: linear-gradient(90deg, var(--green), #34d399); }
+        .stat-card.c-porcentaje::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+
+        .stat-icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; margin-bottom: 0.9rem;
+        }
+        .stat-icon.purple { background: rgba(108,99,255,0.1); }
+        .stat-icon.green  { background: rgba(16,185,129,0.1); }
+        .stat-icon.amber  { background: rgba(245,158,11,0.1); }
+
+        .stat-number {
+            font-family: 'Syne', sans-serif; font-weight: 800;
+            font-size: 2.4rem; line-height: 1; letter-spacing: -1.5px;
+            color: var(--text); margin-bottom: 0.3rem;
+        }
+        .stat-number.green-text { color: var(--green); }
+        .stat-number.amber-text { color: #d97706; }
+
+        .stat-label {
+            font-size: 0.76rem; color: var(--muted); font-weight: 500;
+            letter-spacing: 0.06em; text-transform: uppercase;
+        }
+
+        /* ── CHARTS GRID ── */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.25rem;
+            animation: fadeUp 0.5s 0.14s ease both;
+        }
+
+        @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 580px) { .charts-grid { grid-template-columns: 1fr; } }
+
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.22s, box-shadow 0.22s;
+        }
+        .chart-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .chart-title {
+            font-family: 'Syne', sans-serif; font-weight: 700;
+            font-size: 0.82rem; letter-spacing: 0.08em;
+            text-transform: uppercase; color: var(--muted2);
+            margin-bottom: 1.25rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .chart-title::before {
+            content: ''; display: block; width: 12px; height: 2px;
+            background: var(--accent); border-radius: 2px;
+        }
+
+        .chart-wrap {
+            height: 200px; position: relative;
+        }
+
+        /* ── PROGRESS CARD ── */
+        .progress-card {
+            display: flex; flex-direction: column; justify-content: center;
+        }
+
+        .progress-label-row {
+            display: flex; justify-content: space-between; align-items: baseline;
+            margin-bottom: 0.6rem;
+        }
+
+        .progress-label {
+            font-size: 0.8rem; color: var(--muted2); font-weight: 500;
+        }
+
+        .progress-value {
+            font-family: 'Syne', sans-serif; font-weight: 800;
+            font-size: 2rem; letter-spacing: -1px;
+            color: var(--text); line-height: 1;
+        }
+
+        .progress-track {
+            height: 12px; background: rgba(108,99,255,0.08);
+            border-radius: 999px; overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, var(--green), #34d399);
+            border-radius: 999px;
+            transition: width 1s cubic-bezier(0.34, 1.2, 0.64, 1);
+            box-shadow: 0 0 10px rgba(16,185,129,0.35);
+        }
+
+        .progress-fill.warning { background: linear-gradient(90deg, #f59e0b, #fbbf24); box-shadow: 0 0 10px rgba(245,158,11,0.35); }
+        .progress-fill.danger  { background: linear-gradient(90deg, var(--red), #f87171); box-shadow: 0 0 10px rgba(239,68,68,0.35); }
+
+        .progress-legend {
+            display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem;
+        }
+        .legend-item {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.8rem; color: var(--muted2);
+        }
+        .legend-dot {
+            width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+        }
+        .legend-item strong { color: var(--text); font-weight: 600; margin-left: auto; }
+
+        @media (max-width: 640px) {
+            main { padding: 2rem 1.25rem 4rem; }
+            nav  { padding: 0 1.25rem; }
+        }
+        .nav-user { display: flex; align-items: center; gap: 0.6rem; }
+        .nav-username { font-size: 0.83rem; color: var(--muted2); font-weight: 500; }
+        .nav-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            border: 2px solid var(--border2);
+            background: rgba(108,99,255,0.08);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; flex-shrink: 0;
+            font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.8rem;
+            color: var(--accent);
+        }
+        .nav-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+        .btn-logout {
+            font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 500;
+            padding: 0.42rem 1rem; border-radius: 8px;
+            border: 1px solid rgba(239,68,68,0.25); background: rgba(239,68,68,0.06);
+            color: #dc2626; cursor: pointer; transition: all 0.18s;
+        }
+        .btn-logout:hover { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.4); }
     </style>
 </head>
-
 <body>
 
-<nav class="navbar navbar-expand-lg sticky-top">
-    <div class="container">
-        <a class="navbar-brand fw-bold" href="/">Sistema de Gestion de Eventos</a>
+<nav>
+    <a class="nav-logo" href="/">
+        <span class="nav-logo-dot"></span>
+        syncro
+    </a>
+    <div class="nav-right">
+        <a href="/eventos" class="btn-back">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Volver
+        </a>
+        <div class="nav-user">
+            <span class="nav-username" id="navUsername"></span>
+            <div class="nav-avatar" id="navAvatar"></div>
+        </div>
+        <form action="/logout" method="post" style="margin:0">
+            <button class="btn-logout" type="submit">Cerrar sesión</button>
+        </form>
     </div>
 </nav>
 
-<div class="container mt-5">
+<main>
 
-    <h2 class="fw-bold mb-4">Resumen del Evento</h2>
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="page-eyebrow">Análisis</div>
+        <h1 class="page-title">Estadísticas del evento</h1>
+    </div>
 
-    <div class="row g-4 mb-4">
+    <!-- STAT CARDS -->
+    <div class="stats-row">
+        <div class="stat-card c-inscritos">
+            <div class="stat-icon purple">🎟️</div>
+            <div class="stat-number" id="inscritos">—</div>
+            <div class="stat-label">Total inscritos</div>
+        </div>
+        <div class="stat-card c-asistentes">
+            <div class="stat-icon green">✅</div>
+            <div class="stat-number green-text" id="asistentes">—</div>
+            <div class="stat-label">Total asistentes</div>
+        </div>
+        <div class="stat-card c-porcentaje">
+            <div class="stat-icon amber">📊</div>
+            <div class="stat-number amber-text" id="porcentaje">—</div>
+            <div class="stat-label">% asistencia</div>
+        </div>
+    </div>
 
-        <div class="col-md-4">
-            <div class="stat-card p-4 text-center">
-                <h3 id="inscritos">-</h3>
-                <p class="text-muted mb-0">Total inscritos</p>
+    <!-- CHARTS -->
+    <div class="charts-grid">
+
+        <!-- Dona -->
+        <div class="chart-card">
+            <div class="chart-title">Asistencia</div>
+            <div class="chart-wrap">
+                <canvas id="graficoAsistencia"></canvas>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="stat-card p-4 text-center">
-                <h3 id="asistentes">-</h3>
-                <p class="text-muted mb-0">Total asistentes</p>
+        <!-- Barras -->
+        <div class="chart-card">
+            <div class="chart-title">Comparación</div>
+            <div class="chart-wrap">
+                <canvas id="graficoComparacion"></canvas>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="stat-card p-4 text-center">
-                <h3 id="porcentaje">-</h3>
-                <p class="text-muted mb-0">% asistencia</p>
+        <!-- Progress -->
+        <div class="chart-card progress-card">
+            <div class="chart-title">Nivel de asistencia</div>
+
+            <div class="progress-label-row">
+                <span class="progress-label">Tasa de asistencia</span>
+                <span class="progress-value" id="progValor">0%</span>
+            </div>
+
+            <div class="progress-track">
+                <div class="progress-fill" id="barraAsistencia"></div>
+            </div>
+
+            <div class="progress-legend">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #6c63ff"></div>
+                    Inscritos
+                    <strong id="leg-inscritos">—</strong>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #10b981"></div>
+                    Asistentes
+                    <strong id="leg-asistentes">—</strong>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #ef4444"></div>
+                    No asistieron
+                    <strong id="leg-ausentes">—</strong>
+                </div>
             </div>
         </div>
 
     </div>
 
-
-    <div class="row g-4">
-
-        <div class="col-md-4">
-            <div class="stat-card p-3">
-                <h6 class="text-center mb-3">Asistencia</h6>
-                <div class="chart-box">
-                    <canvas id="graficoAsistencia"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="stat-card p-3">
-                <h6 class="text-center mb-3">Comparación</h6>
-                <div class="chart-box">
-                    <canvas id="graficoComparacion"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="stat-card p-4">
-                <h6 class="text-center mb-3">Nivel de asistencia</h6>
-
-                <div class="progress" style="height:25px">
-                    <div id="barraAsistencia"
-                         class="progress-bar bg-success"
-                         style="width:0%">
-                        0%
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-    </div>
-
-</div>
-
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</main>
 
 <script>
-
-    const id = window.location.pathname.split("/")[2];
+    const id = window.location.pathname.split('/')[2];
 
     fetch(`/eventos/${id}/stats`)
-
-        .then(r=>r.json())
-
-        .then(data=>{
-
-            const inscritos = data.inscritos;
+        .then(r => r.json())
+        .then(data => {
+            const inscritos  = data.inscritos;
             const asistentes = data.asistentes;
+            const ausentes   = inscritos - asistentes;
+            const pct        = ((asistentes / inscritos) * 100 || 0).toFixed(1);
 
-            const porcentaje =
-                ((asistentes / inscritos) * 100 || 0).toFixed(1);
+            // Stats
+            document.getElementById('inscritos').textContent  = inscritos;
+            document.getElementById('asistentes').textContent = asistentes;
+            document.getElementById('porcentaje').textContent = pct + '%';
 
-            document.getElementById("inscritos").textContent = inscritos;
-            document.getElementById("asistentes").textContent = asistentes;
-            document.getElementById("porcentaje").textContent = porcentaje + "%";
+            // Legend
+            document.getElementById('leg-inscritos').textContent  = inscritos;
+            document.getElementById('leg-asistentes').textContent = asistentes;
+            document.getElementById('leg-ausentes').textContent   = ausentes;
 
+            // Progress bar
+            const barra = document.getElementById('barraAsistencia');
+            const progValor = document.getElementById('progValor');
+            progValor.textContent = pct + '%';
+            if (pct < 40) barra.classList.add('danger');
+            else if (pct < 70) barra.classList.add('warning');
+            setTimeout(() => { barra.style.width = pct + '%'; }, 100);
 
-            /* gráfico dona */
+            // Chart defaults
+            Chart.defaults.font.family = "'DM Sans', sans-serif";
+            Chart.defaults.color = '#9896b0';
 
-            new Chart(document.getElementById("graficoAsistencia"),{
+            // Doughnut
+            new Chart(document.getElementById('graficoAsistencia'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Asistieron', 'No asistieron'],
+                    datasets: [{
+                        data: [asistentes, ausentes],
+                        backgroundColor: ['#10b981', '#ef4444'],
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    cutout: '68%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 10, padding: 14, font: { size: 11 } }
+                        }
+                    },
+                    maintainAspectRatio: false
+                }
+            });
 
-                type:"doughnut",
-
-                data:{
-                    labels:["Asistieron","No asistieron"],
-                    datasets:[{
-                        data:[
-                            asistentes,
-                            inscritos-asistentes
+            // Bar
+            new Chart(document.getElementById('graficoComparacion'), {
+                type: 'bar',
+                data: {
+                    labels: ['Inscritos', 'Asistentes'],
+                    datasets: [{
+                        data: [inscritos, asistentes],
+                        backgroundColor: [
+                            'rgba(108,99,255,0.75)',
+                            'rgba(16,185,129,0.75)'
                         ],
-                        backgroundColor:[
-                            "#22c55e",
-                            "#dd2d4a"
-                        ]
+                        borderRadius: 8,
+                        borderSkipped: false
                     }]
                 },
-
-                options:{
-                    plugins:{legend:{position:"bottom"}},
-                    maintainAspectRatio:false
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, border: { display: false } },
+                        y: {
+                            grid: { color: 'rgba(108,99,255,0.07)', drawBorder: false },
+                            border: { display: false },
+                            ticks: { stepSize: 1 }
+                        }
+                    },
+                    maintainAspectRatio: false
                 }
-
             });
-
-
-            /* gráfico barra */
-
-            new Chart(document.getElementById("graficoComparacion"),{
-
-                type:"bar",
-
-                data:{
-                    labels:["Inscritos","Asistentes"],
-                    datasets:[{
-                        data:[inscritos,asistentes],
-                        backgroundColor:[
-                            "#3b82f6",
-                            "#22c55e"
-                        ]
-                    }]
-                },
-
-                options:{
-                    plugins:{legend:{display:false}},
-                    maintainAspectRatio:false
-                }
-
-            });
-
-
-            /* barra de progreso */
-
-            const barra = document.getElementById("barraAsistencia");
-
-            barra.style.width = porcentaje + "%";
-            barra.textContent = porcentaje + "%";
-
         });
-
 </script>
 
+<script>
+    (function() {
+        fetch('/session').then(r => r.ok ? r.json() : null).then(user => {
+            if (!user) return;
+            const nombre = user.nombre ?? user.username;
+            const usernameEl = document.getElementById('navUsername');
+            const avatarEl   = document.getElementById('navAvatar');
+            if (usernameEl) usernameEl.textContent = '@' + user.username;
+            if (avatarEl) {
+                if (user.fotoPerfil) {
+                    avatarEl.innerHTML = '<img src="' + user.fotoPerfil + '" alt="' + nombre + '">';
+                } else {
+                    avatarEl.textContent = nombre.charAt(0).toUpperCase();
+                }
+            }
+        }).catch(() => {});
+    })();
+</script>
 </body>
 </html>
