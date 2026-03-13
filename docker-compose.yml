@@ -1,0 +1,27 @@
+services:
+  syncro-app:
+    image: scarletabreudev/syncro-app:latest
+    container_name: syncro-app
+    restart: always
+    expose:
+      - "7070"
+      - "9092"
+    volumes:
+      - h2_data:/app/data
+
+  proxy:
+    image: caddy:2-alpine
+    container_name: syncro-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+    depends_on:
+      - syncro-app
+    restart: always
+
+volumes:
+  h2_data:
+  caddy_data:
