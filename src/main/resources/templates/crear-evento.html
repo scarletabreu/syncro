@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Syncro — Crear Evento</title>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -42,7 +44,7 @@
 
         /* ── NAVBAR ── */
         nav {
-            position: sticky; top: 0; z-index: 100;
+            position: sticky; top: 0; z-index: 1000;
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 2.5rem; height: 64px;
             background: rgba(244,243,255,0.82);
@@ -89,7 +91,7 @@
 
         /* ── PAGE ── */
         .page-center {
-            flex: 1; display: flex; align-items: center; justify-content: center;
+            flex: 1; display: flex; align-items: flex-start; justify-content: center;
             padding: 3rem 1.5rem; position: relative; z-index: 1;
         }
 
@@ -97,7 +99,7 @@
         .form-card {
             background: var(--surface); border: 1px solid var(--border);
             border-radius: 24px; padding: 2.75rem 2.5rem;
-            width: 100%; max-width: 540px;
+            width: 100%; max-width: 580px;
             box-shadow: var(--shadow-lg);
             animation: fadeUp 0.55s ease both;
         }
@@ -165,13 +167,135 @@
             box-shadow: 0 0 0 4px rgba(108,99,255,0.1);
         }
 
-        /* datetime-local icon tint */
         .field input[type="datetime-local"]::-webkit-calendar-picker-indicator {
             opacity: 0.4; cursor: pointer;
         }
 
+        /* ── LOCATION FIELD ── */
+        .location-wrapper { position: relative; }
+
+        .location-input-row {
+            display: flex; gap: 0.5rem;
+        }
+
+        .location-input-row input {
+            flex: 1;
+        }
+
+        .btn-locate {
+            flex-shrink: 0;
+            width: 44px; height: 44px; border-radius: 10px;
+            border: 1.5px solid var(--border2);
+            background: var(--bg);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--accent);
+            transition: all 0.18s;
+        }
+        .btn-locate:hover {
+            background: rgba(108,99,255,0.08);
+            border-color: var(--accent);
+        }
+        .btn-locate svg { pointer-events: none; }
+
+        /* ── AUTOCOMPLETE DROPDOWN ── */
+        .autocomplete-list {
+            position: absolute; top: calc(100% + 6px); left: 0;
+            width: 100%; background: var(--surface);
+            border: 1.5px solid var(--border2); border-radius: 12px;
+            box-shadow: 0 12px 36px rgba(108,99,255,0.14);
+            z-index: 500; overflow: hidden;
+            animation: dropIn 0.14s ease;
+        }
+        @keyframes dropIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .autocomplete-list.hidden { display: none; }
+
+        .autocomplete-item {
+            padding: 0.7rem 1rem; font-size: 0.875rem; color: var(--text);
+            cursor: pointer; display: flex; align-items: flex-start; gap: 0.6rem;
+            border-bottom: 1px solid var(--border); transition: background 0.12s;
+        }
+        .autocomplete-item:last-child { border-bottom: none; }
+        .autocomplete-item:hover { background: rgba(108,99,255,0.06); }
+
+        .autocomplete-item-icon {
+            flex-shrink: 0; margin-top: 2px;
+            color: var(--accent); opacity: 0.7;
+        }
+
+        .autocomplete-item-text { line-height: 1.35; }
+        .autocomplete-item-main { font-weight: 500; }
+        .autocomplete-item-sub  { font-size: 0.78rem; color: var(--muted2); }
+
+        .autocomplete-loading {
+            padding: 0.9rem 1rem; font-size: 0.85rem; color: var(--muted2);
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .spinner {
+            width: 14px; height: 14px; border-radius: 50%;
+            border: 2px solid rgba(108,99,255,0.2);
+            border-top-color: var(--accent);
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── MAP ── */
+        .map-section {
+            margin-top: 1rem;
+            border-radius: 14px; overflow: hidden;
+            border: 1.5px solid var(--border2);
+            box-shadow: 0 4px 20px rgba(108,99,255,0.08);
+            position: relative;
+        }
+
+        .map-section.hidden { display: none; }
+
+        #map {
+            height: 220px; width: 100%;
+        }
+
+        .map-label {
+            font-size: 0.73rem; font-weight: 600;
+            letter-spacing: 0.06em; text-transform: uppercase;
+            color: var(--muted2); margin-bottom: 0.45rem;
+            display: flex; align-items: center; gap: 0.4rem;
+        }
+        .map-label-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--accent); display: inline-block;
+        }
+
+        /* Selected location pill */
+        .location-pill {
+            display: none;
+            align-items: center; gap: 0.5rem;
+            background: rgba(108,99,255,0.07);
+            border: 1px solid rgba(108,99,255,0.2);
+            border-radius: 8px; padding: 0.45rem 0.75rem;
+            font-size: 0.8rem; color: var(--muted2);
+            margin-top: 0.5rem;
+        }
+        .location-pill.visible { display: flex; }
+        .location-pill svg { color: var(--accent); flex-shrink: 0; }
+        .location-pill-text { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .location-pill-clear {
+            cursor: pointer; opacity: 0.5; transition: opacity 0.15s;
+            background: none; border: none; padding: 0; color: var(--muted2);
+            font-size: 1rem; line-height: 1; flex-shrink: 0;
+        }
+        .location-pill-clear:hover { opacity: 1; }
+
+        /* Coords display */
+        .coords-display {
+            font-size: 0.73rem; color: var(--muted); margin-top: 0.35rem;
+            display: none;
+        }
+        .coords-display.visible { display: block; }
+
         .btn-submit {
-            width: 100%; margin-top: 0.5rem;
+            width: 100%; margin-top: 1.25rem;
             font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700;
             letter-spacing: 0.02em; color: white;
             background: linear-gradient(135deg, var(--accent) 0%, #857dff 100%);
@@ -189,12 +313,21 @@
         .btn-submit:hover::before { opacity: 1; }
         .btn-submit:active { transform: translateY(0); }
 
+        /* Leaflet overrides to match design */
+        .leaflet-container { font-family: 'DM Sans', sans-serif; }
+        .leaflet-control-attribution { font-size: 9px !important; }
+        .leaflet-control-zoom a {
+            border-radius: 8px !important;
+            font-size: 16px !important;
+        }
+
         @media (max-width: 540px) {
             .form-card { padding: 2rem 1.5rem; }
             .form-grid { grid-template-columns: 1fr; }
             .field-full { grid-column: 1; }
             nav { padding: 0 1.25rem; }
         }
+
         .nav-user { display: flex; align-items: center; gap: 0.6rem; }
         .nav-username { font-size: 0.83rem; color: var(--muted2); font-weight: 500; }
         .nav-avatar {
@@ -244,7 +377,7 @@
 
         <div class="card-divider"></div>
 
-        <form action="/eventos" method="post">
+        <form action="/eventos" method="post" id="eventoForm">
             <div class="form-grid">
 
                 <div class="field field-full">
@@ -267,20 +400,374 @@
                     <input id="cupoMaximo" name="cupoMaximo" type="number" min="1" placeholder="Ej. 50" required>
                 </div>
 
+                <!-- ── LUGAR (Nominatim + Leaflet) ── -->
                 <div class="field field-full">
-                    <label for="lugar">Lugar</label>
-                    <input id="lugar" name="lugar" type="text" placeholder="Ej. Auditorio Central" required>
+                    <label for="lugarInput">Lugar</label>
+
+                    <div class="location-wrapper" id="locationWrapper">
+                        <div class="location-input-row">
+                            <input
+                                    id="lugarInput"
+                                    type="text"
+                                    placeholder="Busca una dirección o lugar…"
+                                    autocomplete="off"
+                                    required
+                            >
+                            <!-- Botón geolocalización del navegador -->
+                            <button type="button" class="btn-locate" id="btnGeolocate" title="Usar mi ubicación actual">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+                                    <circle cx="12" cy="12" r="8" stroke-dasharray="2 2" opacity=".4"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Dropdown de sugerencias -->
+                        <div class="autocomplete-list hidden" id="autocompleteList"></div>
+
+                        <!-- Pill de ubicación seleccionada -->
+                        <div class="location-pill" id="locationPill">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            <span class="location-pill-text" id="pillText"></span>
+                            <button type="button" class="location-pill-clear" id="btnClearLocation" title="Limpiar">✕</button>
+                        </div>
+
+                        <div class="coords-display" id="coordsDisplay"></div>
+                    </div>
+
+                    <!-- Mapa -->
+                    <div class="map-section hidden" id="mapSection" style="margin-top:0.75rem;">
+                        <div class="map-label" style="padding: 0.6rem 0.75rem 0;">
+                            <span class="map-label-dot"></span>
+                            Confirma la ubicación en el mapa
+                        </div>
+                        <div id="map"></div>
+                    </div>
                 </div>
+
+                <!-- Campos ocultos enviados al backend -->
+                <input type="hidden" name="lugar"    id="lugarHidden">
+                <input type="hidden" name="latitud"  id="latitudHidden">
+                <input type="hidden" name="longitud" id="longitudHidden">
 
             </div>
 
-            <button type="submit" class="btn-submit">Crear evento →</button>
+            <button type="submit" class="btn-submit" id="btnSubmit">Crear evento →</button>
         </form>
 
     </div>
 </div>
 
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
+    /* =========================================================
+       SYNCRO — Leaflet + OpenStreetMap + Nominatim integration
+       ========================================================= */
+
+    // ── State ──────────────────────────────────────────────────
+    let map = null;
+    let marker = null;
+    let selectedLocation = null;
+    let searchTimer = null;
+
+    // ── DOM refs ───────────────────────────────────────────────
+    const lugarInput     = document.getElementById('lugarInput');
+    const lugarHidden    = document.getElementById('lugarHidden');
+    const latitudHidden  = document.getElementById('latitudHidden');
+    const longitudHidden = document.getElementById('longitudHidden');
+    const autocomplete   = document.getElementById('autocompleteList');
+    const mapSection     = document.getElementById('mapSection');
+    const locationPill   = document.getElementById('locationPill');
+    const pillText       = document.getElementById('pillText');
+    const coordsDisplay  = document.getElementById('coordsDisplay');
+    const btnClear       = document.getElementById('btnClearLocation');
+    const btnGeolocate   = document.getElementById('btnGeolocate');
+    const eventoForm     = document.getElementById('eventoForm');
+
+    // ── Custom Leaflet marker icon (accent color) ──────────────
+    function createAccentIcon() {
+        return L.divIcon({
+            className: '',
+            html: `<svg width="32" height="42" viewBox="0 0 32 42" xmlns="http://www.w3.org/2000/svg">
+            <filter id="shadow" x="-50%" y="-10%" width="200%" height="200%">
+                <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="rgba(108,99,255,0.35)"/>
+            </filter>
+            <path d="M16 0C7.163 0 0 7.163 0 16c0 10 16 26 16 26S32 26 32 16C32 7.163 24.837 0 16 0z"
+                  fill="#6c63ff" filter="url(#shadow)"/>
+            <circle cx="16" cy="16" r="6" fill="white" opacity="0.95"/>
+        </svg>`,
+            iconSize: [32, 42],
+            iconAnchor: [16, 42],
+            popupAnchor: [0, -44]
+        });
+    }
+
+    // ── Init map ───────────────────────────────────────────────
+    function initMap(lat, lon, label) {
+        mapSection.classList.remove('hidden');
+
+        if (!map) {
+            map = L.map('map', { zoomControl: true }).setView([lat, lon], 15);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Allow dragging marker to fine-tune location
+            map.on('click', function(e) {
+                placeMarker(e.latlng.lat, e.latlng.lng, label || lugarInput.value);
+                reverseGeocode(e.latlng.lat, e.latlng.lng);
+            });
+        }
+
+        placeMarker(lat, lon, label);
+        map.setView([lat, lon], 15);
+
+        // Force Leaflet to recalculate size (it may be hidden initially)
+        setTimeout(() => map.invalidateSize(), 80);
+    }
+
+    // ── Place / move marker ────────────────────────────────────
+    function placeMarker(lat, lon, label) {
+        const latlng = [lat, lon];
+        if (marker) {
+            marker.setLatLng(latlng);
+        } else {
+            marker = L.marker(latlng, { icon: createAccentIcon(), draggable: true }).addTo(map);
+
+            marker.on('dragend', function() {
+                const pos = marker.getLatLng();
+                reverseGeocode(pos.lat, pos.lng);
+            });
+        }
+
+        if (label) marker.bindPopup(`<b style="font-family:DM Sans,sans-serif">${label}</b>`).openPopup();
+
+        setHiddenCoords(lat, lon);
+        updateCoordsDisplay(lat, lon);
+    }
+
+    // ── Hidden fields & UI state ───────────────────────────────
+    function setHiddenCoords(lat, lon) {
+        latitudHidden.value  = lat;
+        longitudHidden.value = lon;
+    }
+
+    function updateCoordsDisplay(lat, lon) {
+        coordsDisplay.textContent = `📍 ${parseFloat(lat).toFixed(5)}, ${parseFloat(lon).toFixed(5)}`;
+        coordsDisplay.classList.add('visible');
+    }
+
+    function setSelectedLocation(displayName, lat, lon) {
+        selectedLocation = { displayName, lat, lon };
+
+        lugarInput.value    = displayName;
+        lugarHidden.value   = displayName;
+        setHiddenCoords(lat, lon);
+        updateCoordsDisplay(lat, lon);
+
+        pillText.textContent = displayName;
+        locationPill.classList.add('visible');
+
+        hideAutocomplete();
+        initMap(lat, lon, displayName);
+    }
+
+    function clearLocation() {
+        selectedLocation = null;
+        lugarInput.value    = '';
+        lugarHidden.value   = '';
+        latitudHidden.value = '';
+        longitudHidden.value = '';
+        locationPill.classList.remove('visible');
+        coordsDisplay.classList.remove('visible');
+        mapSection.classList.add('hidden');
+        if (marker) { marker.remove(); marker = null; }
+        lugarInput.focus();
+    }
+
+    // ── Nominatim search (debounced) ───────────────────────────
+    function searchNominatim(query) {
+        if (query.length < 3) { hideAutocomplete(); return; }
+
+        showLoading();
+
+        const url = `https://nominatim.openstreetmap.org/search?` +
+            new URLSearchParams({
+                q: query,
+                format: 'json',
+                addressdetails: 1,
+                limit: 6,
+                'accept-language': 'es'
+            });
+
+        fetch(url, {
+            headers: { 'User-Agent': 'Syncro/1.0 (event-app)' }
+        })
+            .then(r => r.json())
+            .then(results => renderAutocomplete(results))
+            .catch(() => hideAutocomplete());
+    }
+
+    // ── Nominatim reverse geocode (on marker drag / map click) ─
+    function reverseGeocode(lat, lon) {
+        const url = `https://nominatim.openstreetmap.org/reverse?` +
+            new URLSearchParams({ lat, lon, format: 'json', 'accept-language': 'es' });
+
+        fetch(url, { headers: { 'User-Agent': 'Syncro/1.0 (event-app)' } })
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.display_name) {
+                    const shortName = buildShortName(data);
+                    setSelectedLocation(shortName, lat, lon);
+                }
+            })
+            .catch(() => {});
+    }
+
+    // ── Build a short friendly label from address details ──────
+    function buildShortName(data) {
+        const a = data.address || {};
+        const parts = [
+            a.amenity || a.building || a.house_name,
+            a.road ? (a.house_number ? `${a.road} ${a.house_number}` : a.road) : null,
+            a.city || a.town || a.village || a.county,
+            a.country
+        ].filter(Boolean);
+        return parts.length ? parts.join(', ') : data.display_name;
+    }
+
+    // ── Autocomplete UI ────────────────────────────────────────
+    function showLoading() {
+        autocomplete.innerHTML = `
+        <div class="autocomplete-loading">
+            <div class="spinner"></div>
+            Buscando lugares…
+        </div>`;
+        autocomplete.classList.remove('hidden');
+    }
+
+    function hideAutocomplete() {
+        autocomplete.classList.add('hidden');
+        autocomplete.innerHTML = '';
+    }
+
+    function renderAutocomplete(results) {
+        if (!results.length) {
+            autocomplete.innerHTML = `
+            <div class="autocomplete-loading" style="color:var(--muted)">
+                Sin resultados para esta búsqueda
+            </div>`;
+            return;
+        }
+
+        autocomplete.innerHTML = results.map((r, i) => {
+            const main = buildShortName(r);
+            const type = r.type || r.class || '';
+            return `
+        <div class="autocomplete-item" data-index="${i}">
+            <svg class="autocomplete-item-icon" width="14" height="14" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+            </svg>
+            <div class="autocomplete-item-text">
+                <div class="autocomplete-item-main">${escapeHtml(main)}</div>
+                ${type ? `<div class="autocomplete-item-sub">${escapeHtml(type)}</div>` : ''}
+            </div>
+        </div>`;
+        }).join('');
+
+        autocomplete.classList.remove('hidden');
+
+        autocomplete.querySelectorAll('.autocomplete-item').forEach((el, i) => {
+            el.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                const r = results[i];
+                setSelectedLocation(buildShortName(r), parseFloat(r.lat), parseFloat(r.lon));
+            });
+        });
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ── Input events ───────────────────────────────────────────
+    lugarInput.addEventListener('input', () => {
+        const val = lugarInput.value.trim();
+        locationPill.classList.remove('visible');
+        clearTimeout(searchTimer);
+        if (val.length < 3) { hideAutocomplete(); return; }
+        searchTimer = setTimeout(() => searchNominatim(val), 350);
+    });
+
+    lugarInput.addEventListener('blur', () => {
+        setTimeout(hideAutocomplete, 200);
+    });
+
+    lugarInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') hideAutocomplete();
+    });
+
+    btnClear.addEventListener('click', clearLocation);
+
+    // ── Geolocation button ─────────────────────────────────────
+    btnGeolocate.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            alert('Tu navegador no soporta geolocalización.');
+            return;
+        }
+        btnGeolocate.style.opacity = '0.5';
+        btnGeolocate.disabled = true;
+
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const { latitude: lat, longitude: lon } = pos.coords;
+                reverseGeocode(lat, lon);
+                btnGeolocate.style.opacity = '';
+                btnGeolocate.disabled = false;
+            },
+            (err) => {
+                alert('No se pudo obtener tu ubicación. Verifica los permisos del navegador.');
+                btnGeolocate.style.opacity = '';
+                btnGeolocate.disabled = false;
+            }
+        );
+    });
+
+    // ── Form submit validation ─────────────────────────────────
+    eventoForm.addEventListener('submit', (e) => {
+        if (!latitudHidden.value || !longitudHidden.value) {
+            e.preventDefault();
+            lugarInput.focus();
+            lugarInput.style.borderColor = '#dc2626';
+            lugarInput.style.boxShadow   = '0 0 0 4px rgba(220,38,38,0.12)';
+            setTimeout(() => {
+                lugarInput.style.borderColor = '';
+                lugarInput.style.boxShadow   = '';
+            }, 2000);
+
+            lugarInput.animate([
+                { transform: 'translateX(-4px)' },
+                { transform: 'translateX(4px)' },
+                { transform: 'translateX(-3px)' },
+                { transform: 'translateX(3px)' },
+                { transform: 'translateX(0)' }
+            ], { duration: 320, easing: 'ease-out' });
+
+            alert('Por favor selecciona un lugar del mapa o autocompletado.');
+        }
+    });
+
+    // ── Session / avatar ───────────────────────────────────────
     (function() {
         fetch('/session').then(r => r.ok ? r.json() : null).then(user => {
             if (!user) return;
