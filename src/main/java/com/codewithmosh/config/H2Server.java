@@ -22,5 +22,4 @@ public class H2Server {
             e.printStackTrace();
         }
     }
-
 }

@@ -1,5 +1,5 @@
 # ---------- BUILD STAGE ----------
-FROM gradle:8.7-jdk21 AS builder
+FROM gradle:8.13-jdk21 AS builder
 
 WORKDIR /app
 COPY . .
@@ -7,7 +7,7 @@ COPY . .
 RUN ./gradlew shadowJar --no-daemon
 
 # ---------- RUNTIME STAGE ----------
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:25-jre-jammy
 
 WORKDIR /app
 

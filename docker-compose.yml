@@ -3,9 +3,8 @@ services:
     image: scarletabreudev/syncro-app:latest
     container_name: syncro-app
     restart: always
-    expose:
-      - "7070"
-      - "9092"
+    ports:
+      - "7070:7070"
     volumes:
       - h2_data:/app/data
 
