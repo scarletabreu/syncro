@@ -68,7 +68,7 @@ Acceso al sistema:
 
 ## Diagrama de Clases
 
-![Diagrama de Clases](./Captura%20de%20pantalla%202026-03-14%20a%20la(s)%201.56.08%20a.%20m..png)
+![Diagrama de Clases](./diagrama.png)
 
 ---
 
