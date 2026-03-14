@@ -68,7 +68,7 @@ Acceso al sistema:
 
 ## Diagrama de Clases
 
-<img width="1118" height="911" alt="image" src="https://github.com/user-attachments/assets/92f53525-6fc8-4649-99eb-b7e0c1352a00" />
+![Diagrama de Clases](./Captura%20de%20pantalla%202026-03-14%20a%20la(s)%201.56.08%20a.%20m..png)
 
 ---
 
